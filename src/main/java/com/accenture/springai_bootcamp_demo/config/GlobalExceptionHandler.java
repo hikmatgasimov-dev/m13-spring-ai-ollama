@@ -8,6 +8,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.accenture.springai_bootcamp_demo.coach.QuizGenerationException;
 
 /**
  * Translates domain and validation failures into RFC 7807 problem responses.
@@ -30,6 +31,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(OpenRouterException.class)
     public ProblemDetail handleOpenRouter(OpenRouterException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
+    }
+    @ExceptionHandler(QuizGenerationException.class)
+    public ProblemDetail handleQuizGeneration(QuizGenerationException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
 }
