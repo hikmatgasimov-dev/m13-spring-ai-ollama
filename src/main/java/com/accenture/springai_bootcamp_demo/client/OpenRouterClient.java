@@ -2,8 +2,10 @@ package com.accenture.springai_bootcamp_demo.client;
 
 import com.accenture.springai_bootcamp_demo.entity.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import com.accenture.springai_bootcamp_demo.config.OpenRouterProperties;
 
 import java.util.List;
 
@@ -15,7 +17,15 @@ import java.util.List;
 @Slf4j
 @Component
 public class OpenRouterClient {
-    //TODO 4: define and initialize a ChatClient
+
+    private final ChatClient chatClient;
+
+    // ChatClient.Builder is auto-configured by the Ollama starter (spring.ai.ollama.* in application.yaml)
+    public OpenRouterClient(ChatClient.Builder builder, OpenRouterProperties properties) {
+        this.chatClient = builder
+                .defaultSystem(properties.systemPrompt())
+                .build();
+    }
 
     public String complete(List<ChatMessage> history) {
         String reply = call(history);
@@ -25,7 +35,11 @@ public class OpenRouterClient {
 
     private String call(List<ChatMessage> history) {
         try {
-            //TODO 5: make a call through ChatClient with the conversation history (including latest user message)
+
+            return chatClient.prompt()
+                    .messages(PromptMessages.from(history))
+                    .call()
+                    .content();
         } catch (OpenRouterException ex) {
             throw ex;
         } catch (RuntimeException ex) {
@@ -34,7 +48,6 @@ public class OpenRouterClient {
         }
     }
 
-    //TODO 6: use helper methods/mappers/utility classes to construct the payload for a cleaner solution
 
     private String extractContent(String content) {
         if (!StringUtils.hasText(content)) {
