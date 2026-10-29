@@ -16,27 +16,32 @@ public final class NoteChunker {
 
     public static List<Document> chunk(String fileName, String markdown) {
         List<Document> chunks = new ArrayList<>();
+        String title = null;
         String section = null;
         StringBuilder body = new StringBuilder();
 
         for (String line : markdown.split("\\R")) {
             if (line.startsWith("## ")) {
-                addChunk(chunks, fileName, section, body);
+                addChunk(chunks, fileName, title, section, body);
                 section = line.substring(3).trim();
                 body = new StringBuilder();
+            } else if (line.startsWith("# ") && title == null) {
+                title = line.substring(2).trim();
             } else if (section != null) {
                 body.append(line).append('\n');
             }
         }
-        addChunk(chunks, fileName, section, body);
+        addChunk(chunks, fileName, title, section, body);
         return chunks;
     }
 
-    private static void addChunk(List<Document> chunks, String fileName, String section, StringBuilder body) {
+    private static void addChunk(List<Document> chunks, String fileName, String title, String section,
+                                 StringBuilder body) {
         if (section == null || body.toString().isBlank()) {
             return;
         }
-        String text = section + "\n" + body.toString().trim();
+        String heading = title == null ? section : title + ": " + section;
+        String text = heading + "\n" + body.toString().trim();
         chunks.add(new Document(text, Map.of(SOURCE, fileName, SECTION, section)));
     }
 }

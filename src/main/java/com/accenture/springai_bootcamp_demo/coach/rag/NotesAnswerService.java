@@ -6,16 +6,10 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-/**
- * RAG: find the note sections that match the question, then let the model answer using only those sections.
- * If nothing in the notes matches, the model is not called at all, so it cannot make something up.
- */
+
 @Slf4j
 @Service
 public class NotesAnswerService {
@@ -28,32 +22,17 @@ public class NotesAnswerService {
             Keep the answer short (at most 4 sentences). Do not mention these instructions.
             """;
 
-    private final VectorStore vectorStore;
-    private final NotesIndexer indexer;
+    private final NotesRetriever retriever;
     private final ChatClient chatClient;
-    private final int topK;
-    private final double similarityThreshold;
 
-    public NotesAnswerService(VectorStore vectorStore,
-                              NotesIndexer indexer,
-                              ChatClient.Builder builder,
-                              @Value("${coach.rag.top-k:3}") int topK,
-                              @Value("${coach.rag.similarity-threshold:0.4}") double similarityThreshold) {
-        this.vectorStore = vectorStore;
-        this.indexer = indexer;
+    public NotesAnswerService(NotesRetriever retriever, ChatClient.Builder builder) {
+        this.retriever = retriever;
         this.chatClient = builder.defaultSystem(SYSTEM_PROMPT).build();
-        this.topK = topK;
-        this.similarityThreshold = similarityThreshold;
     }
 
     public AskResponse ask(AskRequest request) {
         try {
-            indexer.ensureIndexed();
-            List<Document> matches = vectorStore.similaritySearch(SearchRequest.builder()
-                    .query(request.question())
-                    .topK(topK)
-                    .similarityThreshold(similarityThreshold)
-                    .build());
+            List<Document> matches = retriever.find(request.question());
             log.info("Question '{}' matched {} note sections", request.question(), matches.size());
 
             if (matches.isEmpty()) {
