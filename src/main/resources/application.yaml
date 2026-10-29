@@ -12,13 +12,20 @@ spring:
         dialect: org.hibernate.community.dialect.SQLiteDialect
     open-in-view: false
 
-
   ai:
     ollama:
       base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
       chat:
         options:
           model: ${OLLAMA_MODEL:llama3.2}
+      embedding:
+        options:
+          model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text}
 
 openrouter:
   system-prompt: ${SYSTEM_PROMPT:You are a helpful, concise assistant.}
+
+coach:
+  rag:
+    top-k: 3
+    similarity-threshold: 0.4

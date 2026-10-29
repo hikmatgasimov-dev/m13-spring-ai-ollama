@@ -9,7 +9,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.accenture.springai_bootcamp_demo.coach.QuizGenerationException;
-
+import com.accenture.springai_bootcamp_demo.coach.workflow.AgentOutputException;
+import com.accenture.springai_bootcamp_demo.coach.workflow.TopicNotCoveredException;
 /**
  * Translates domain and validation failures into RFC 7807 problem responses.
  */
@@ -37,4 +38,18 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleQuizGeneration(QuizGenerationException ex) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+    @ExceptionHandler(TopicNotCoveredException.class)
+    public ProblemDetail handleTopicNotCovered(TopicNotCoveredException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(AgentOutputException.class)
+    public ProblemDetail handleAgentOutput(AgentOutputException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
+    }
+
 }
